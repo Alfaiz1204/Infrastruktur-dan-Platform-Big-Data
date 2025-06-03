@@ -1,28 +1,24 @@
 from fastapi import FastAPI
 import psycopg2
 import os
-from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# Izinkan akses dari Google Colab
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Ganti dengan asal tertentu jika ingin lebih aman
+    allow_origins=["*"],  # ganti dengan domain tertentu jika ingin batasi
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Konfigurasi koneksi database
 DB_USER = 'albudi'
 DB_PASS = 'albudi'
-DB_HOST = 'IPBD-postgres'
+DB_HOST = 'localhost'
 DB_PORT = '5432'
 DB_NAME = 'IMDB'
 
-# Gunakan f-string untuk membentuk DATABASE_URL
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
     f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
@@ -30,6 +26,8 @@ DATABASE_URL = os.getenv(
 
 @app.get("/training-data")
 def get_training_data():
+    conn = None
+    cursor = None
     try:
         conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
@@ -70,6 +68,7 @@ def get_training_data():
         return {"error": str(e)}
 
     finally:
-        if conn:
+        if cursor:
             cursor.close()
+        if conn:
             conn.close()
